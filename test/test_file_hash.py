@@ -1,7 +1,7 @@
 import pathlib
 from typing import List
 
-from app.main import get_sha1_hash, get_file_list, get_file_size, save_dict_as_csv, main, _csv_header
+from app.file_hash import get_sha1_hash, get_file_list, get_file_size, save_dict_as_csv, main, _csv_header
 
 test_files_root = r'C:\Users\a\Documents\vss\python-experiments\test-files'
 
