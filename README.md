@@ -3,7 +3,7 @@
 - A simple sha-1 file hashing programme
 - Written in python
 - With a number of tests to confirm its correct function
-- Skips big files that would take a long time to hash
+- Skips big files that would take a long time to hash (see Config setting)
 
 # Setup on windows
 

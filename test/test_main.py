@@ -155,7 +155,6 @@ def test_main(tmpdir):
     finally:
         result_report_file.close()
     assert len(result_file) > 100
-    print(result_file)
     assert result_file == r""""file-path","sha-1","error","size"
 "C:\Users\a\Documents\vss\python-experiments\test-files\kanji-教育漢字","","big-file-skipped > 1024 bytes","21864"
 "C:\Users\a\Documents\vss\python-experiments\test-files\new 1.txt","","big-file-skipped > 1024 bytes","735085"

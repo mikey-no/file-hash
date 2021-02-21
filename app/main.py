@@ -84,20 +84,23 @@ def get_file_list(scan_location: pathlib):
     returns list of pathlib items
     """
     file_list = []
+    if isinstance(scan_location, str):
+        scan_location = pathlib.Path(scan_location)
+
     # just a single file
     if scan_location.is_file():
-        print(f'scan_location is a file: {str(scan_location)}')
+        if __DEBUG__: print(f'scan_location is a file: {str(scan_location)}')
         file_list.append(pathlib.Path(scan_location))
         return file_list
     else:
-        print(f'scan_location is a folder: {pathlib.Path(scan_location)}')
+        if __DEBUG__: print(f'scan_location is a folder: {pathlib.Path(scan_location)}')
 
     if pathlib.Path(scan_location).is_absolute():
-        print(f'File location to hash: {pathlib.Path(scan_location)}')
+        if __DEBUG__: print(f'File location to hash: {pathlib.Path(scan_location)}')
         scan_location = pathlib.Path(scan_location)
     else:
         scan_location = pathlib.Path(scan_location).resolve()
-        print(f'File (relative) location to hash: {scan_location}')
+        if __DEBUG__: print(f'File (relative) location to hash: {scan_location}')
 
     if not pathlib.Path(scan_location).exists():
         print(f'Error: get_file_list: Location to hash is not found: {scan_location}')
@@ -140,7 +143,7 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
 
     csv_writer = csv.DictWriter(output_file, fieldnames=_csv_header, quoting=csv.QUOTE_ALL, lineterminator='\n')
     csv_writer.writeheader()
-    print(f'length of list: {len(data_list)}')
+    if __DEBUG__: print(f'length of list: {len(data_list)}')
     try:
         for data in data_list:
             csv_writer.writerow(data)
@@ -148,7 +151,7 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
     except Exception as e:
         print(f'Error: file_hash: print_dict: {e} to file: {file}')
     output_file.close()
-    print(f'CSV output file: {output_file.name}')
+    if __DEBUG__: print(f'CSV output file: {output_file.name}')
 
 
 def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config.report, config=Config):
