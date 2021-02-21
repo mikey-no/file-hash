@@ -27,7 +27,7 @@ python app\main.py <file path to sha-1> <result.csv>
 
 Call this function
 
-[def main](./app/main.py#162)
+[def main](./app/main.py#L157)
 
 # Test
 
@@ -40,3 +40,4 @@ pytest ./test/test_main.py
 - may need to pass string arguments to the main function
 - write each hash to the csv report after each is calculated
 - set up logging rather that print
+- tkinter user interface
