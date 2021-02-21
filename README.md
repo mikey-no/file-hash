@@ -5,7 +5,7 @@
 - With a number of tests to confirm its correct function
 - Skips big files that would take a long time to hash
 
-# Setup (on windows)
+# Setup on windows
 
 ```commandline
 md file-hash
