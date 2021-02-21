@@ -19,14 +19,6 @@ _csv_header = ['file-path', 'sha-1', 'error', 'size']
 item_list = []
 item_count = 0  # not sure why I cannot get the length of item_list
 file_list = []
-done_file_list = []
-file_list_big = []  # for files bigger than file_size_hash_skip
-file_list_big_no_hash = []  # for files bigger than file_size_no_hash_skip
-directory_list = []
-symlink_list = []
-symlink_to_list = []
-link_to_list = []
-mount_point_list = []
 
 
 class Config:
@@ -34,8 +26,8 @@ class Config:
     scan_location = r'.\test files'
     report = r'C:\Users\a\Documents\vss\python-experiments\file-hash\hash-report.csv'
     # really big files do not hash (1 GByte)
-    # file_size_hash_skip = (1024 ** 3)
-    file_size_hash_skip = (1024 ** 1)
+    file_size_hash_skip = (1024 ** 3)
+    # file_size_hash_skip = (1024 ** 1)
 
 
 def parse_args(parser: argparse, config: Config):
@@ -152,7 +144,7 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
     try:
         for data in data_list:
             csv_writer.writerow(data)
-            print(data)
+
     except Exception as e:
         print(f'Error: file_hash: print_dict: {e} to file: {file}')
     output_file.close()
@@ -183,7 +175,7 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
             result_dict[_csv_header[2]] = f'big-file-skipped > {config.file_size_hash_skip} bytes'
         result_dict[_csv_header[3]] = file_size
 
-        print(f'd: {result_dict}')
+        # print(f'd: {result_dict}')
         result_list.append(result_dict)
 
     save_dict_as_csv(result_list, report)

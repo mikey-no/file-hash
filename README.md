@@ -22,3 +22,21 @@ pip install -f requirements.txt rem (check)
 ```commandline
 python app\main.py <file path to sha-1> <result.csv>
 ```
+
+## from a programme re-using the script
+
+Call this function
+
+[def main](./app/main.py#162)
+
+# Test
+
+```commandline
+pytest ./test/test_main.py
+```
+
+# Further work
+
+- may need to pass string arguments to the main function
+- write each hash to the csv report after each is calculated
+- set up logging rather that print
