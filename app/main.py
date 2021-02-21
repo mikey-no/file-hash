@@ -24,7 +24,7 @@ file_list = []
 class Config:
     # default
     scan_location = r'.\test files'
-    report = r'C:\Users\a\Documents\vss\python-experiments\file-hash\hash-report.csv'
+    report = r'.\hash-report.csv'
     # really big files do not hash (1 GByte)
     file_size_hash_skip = (1024 ** 3)
     # file_size_hash_skip = (1024 ** 1)
