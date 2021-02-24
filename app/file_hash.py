@@ -24,7 +24,7 @@ message_box_on = False
 class Config:
     # default
     scan_location = r'.\test files'
-    report = fr'{os.getcwd()}\hash-report.csv'  # not sure why '$(pwd)' is one directory up
+    report = fr'hash-report.csv'
     # really big files do not hash (1 GByte)
     file_size_hash_skip = (1024 ** 3)
     # file_size_hash_skip = (1024 ** 1) # small file for test
@@ -37,7 +37,7 @@ class Config:
 
     # Log file location
     # logfile = r'.\Exports.ILB\hash-file-log.txt'
-    logfile = f'{os.getcwd()}\\file-hash.log'
+    logfile = f'file-hash.log'
 
     # Define the log format
     log_format = '[%(asctime)s] %(levelname)-8s %(name)-12s %(lineno)d %(funcName)s - %(message)s'
@@ -57,7 +57,7 @@ def parse_args(parser: argparse, config: Config):
     parser.add_argument('scan_location',
                         help=location_help)
 
-    parser.add_argument('-report_location', '--report_location',
+    parser.add_argument('-report', '--report',
                         default=config.report,
                         required=False,
                         help=report_location_help)
@@ -85,7 +85,7 @@ def get_sha1_hash(file: pathlib):
     except FileNotFoundError as fnfe:
         raise Exception(f'Warning: get_sha1_hash: FileNotFoundError {fnfe}: On file: {file}')
     except Exception as e:
-        raise Exception(f'Warning: get_sha1_hash: Exception: {f}: On file: {file}')
+        raise Exception(f'Warning: get_sha1_hash: Exception: {e}: On file: {file}')
 
 
 def get_file_list(scan_location: pathlib):
@@ -119,6 +119,7 @@ def get_file_list(scan_location: pathlib):
         exit(1)
 
     # item_list = scan_location.glob(filter)
+    item_list = []
     try:
         item_list = scan_location.rglob('*')
     except Exception as e:
@@ -203,9 +204,11 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
 
 if __name__ == "__main__":
 
-    if message_box_on: message_box.showinfo(f'File Hash', 'main - {sys.argv}')
+    if message_box_on:
+        message_box.showinfo(f'File Hash', 'main - {sys.argv}')
 
     config = Config
+    args = None
     try:
         args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
     except Exception as e:
@@ -214,8 +217,8 @@ if __name__ == "__main__":
     if args.scan_location is not None:
         config.scan_location = args.scan_location
 
-    if args.report_location is not None:
-        config.report_location = args.report_location
+    if args.report is not None:
+        config.report_location = args.report
 
     # to fix the logger not writing to file, see:
     # https://stackoverflow.com/questions/15892946/python-logging-module-is-not-writing-anything-to-file

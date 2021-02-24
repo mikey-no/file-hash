@@ -21,7 +21,7 @@ pip install -f requirements.txt rem (check)
 ## From the command line - windows
 
 ```commandline
-python app\main.py <file path to sha-1> <result.csv>
+python app\main.py <file path to sha-1> --report <result.csv>
 ```
 
 # Test
