@@ -21,13 +21,13 @@ pip install -f requirements.txt rem (check)
 ## From the command line - windows
 
 ```commandline
-python app\main.py <file path to sha-1> --report <result.csv>
+python app\file_hash.py <file path to sha-1> --report <result.csv>
 ```
 
 # Test
 
 ```commandline
-pytest ./test/test_main.py
+pytest ./test/file_hash.py
 ```
 
 # Further work
