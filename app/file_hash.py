@@ -62,6 +62,11 @@ def parse_args(parser: argparse, config: Config):
                         required=False,
                         help=report_location_help)
 
+    parser.add_argument("-v", "--version",
+                        action="version",
+                        version=str(__version__)
+                        )
+
     args = parser.parse_args()
     logging.debug(str(args))
     return args
