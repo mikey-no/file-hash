@@ -83,9 +83,9 @@ def get_sha1_hash(file: pathlib):
                 hash.update(buffer)
         return hash.hexdigest()
     except FileNotFoundError as fnfe:
-        raise Exception('Warning: get_sha1_hash: FileNotFoundError {fnfe}: On file: {file}'.format(fnfe, file))
+        raise Exception('Warning: get_sha1_hash: FileNotFoundError {0}: On file: {1}'.format(fnfe, file))
     except Exception as e:
-        raise Exception('Warning: get_sha1_hash: Exception: {e}: On file: {file}'.format(e, file))
+        raise Exception('Warning: get_sha1_hash: Exception: {0}: On file: {1}'.format(e, file))
 
 
 def get_file_list(scan_location: pathlib):
@@ -124,7 +124,7 @@ def get_file_list(scan_location: pathlib):
     try:
         item_list = scan_location.rglob('*')
     except Exception as e:
-        logging.warning(f'rglob: {e}')
+        logging.warning('rglob: {0}'.format(e))
         pass
 
     item_count = 0
@@ -137,7 +137,7 @@ def get_file_list(scan_location: pathlib):
                 file_list.append(item)
 
         except Exception as e:
-            logging.warning('get file list: {e}'.format(e))
+            logging.warning('get file list: {0}'.format(e))
 
     logging.debug('Size of file list to hash: {0}'.format(len(file_list)))
     return file_list
