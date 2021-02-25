@@ -22,7 +22,7 @@ message_box_on = False
 class Config:
     # default
     scan_location = r'.\test files'
-    report = fr'hash-report.csv'
+    report = r'hash-report.csv'
     # really big files do not hash (1 GByte)
     file_size_hash_skip = (1024 ** 3)
     # file_size_hash_skip = (1024 ** 1) # small file for test
@@ -35,7 +35,7 @@ class Config:
 
     # Log file location
     # logfile = r'.\Exports.ILB\hash-file-log.txt'
-    logfile = f'file-hash.log'
+    logfile = 'file-hash.log'
 
     # Define the log format
     log_format = '[%(asctime)s] %(levelname)-8s %(name)-12s %(lineno)d %(funcName)s - %(message)s'
