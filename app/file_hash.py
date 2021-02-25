@@ -11,7 +11,7 @@ from tkinter import messagebox as message_box
 from typing import List
 
 __author__ = 'MY'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 __last_modified__ = '25 Feb 2021'
 
 _csv_header = ['file-path', 'sha-1', 'error', 'size']
@@ -23,7 +23,7 @@ class Config:
     # default
     scan_location = r'.\test files'
     report = r'hash-report.csv'
-    # really big files do not hash (1 GByte)
+    # really big files do not hash (1 GByte) it would be very slow
     file_size_hash_skip = (1024 ** 3)
     # file_size_hash_skip = (1024 ** 1) # small file for test
 
@@ -34,7 +34,7 @@ class Config:
     # log_level = logging.WARNING
 
     # Log file location
-    # logfile = r'.\Exports.ILB\hash-file-log.txt'
+    # logfile = r'.\Exports.ILB\hash-file.log'
     logfile = 'file-hash.log'
 
     # Define the log format
@@ -69,6 +69,16 @@ def parse_args(parser: argparse, config: Config):
 
     args = parser.parse_args()
     logging.debug(str(args))
+
+    if args.scan_location is not None:
+        config.scan_location = args.scan_location
+    else:
+        logging.critical('No scan location provided')
+        sys.exit(1)
+
+    if args.report is not None:
+        config.report_location = args.report
+
     return args
 
 
@@ -208,27 +218,13 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
     save_dict_as_csv(result_list, report)
 
 
-if __name__ == "__main__":
-
-    if message_box_on:
-        message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
-
-    config = Config
-    args = None
-    try:
-        args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
-    except Exception as e:
-        logging.critical('Parse arguments error: {0}'.format(e))
-
-    if args.scan_location is not None:
-        config.scan_location = args.scan_location
-    else:
-        logging.critical('No scan location provided')
-        sys.exit(1)
-
-    if args.report is not None:
-        config.report_location = args.report
-
+def setup_logging(logging, config: Config) -> None:
+    """
+    Setup the logging with all my settings
+    :param logging: from import logging
+    :param config: config class
+    :return: None
+    """
     # to fix the logger not writing to file, see:
     # https://stackoverflow.com/questions/15892946/python-logging-module-is-not-writing-anything-to-file
     for handler in logging.root.handlers[:]:
@@ -255,4 +251,44 @@ if __name__ == "__main__":
     logging.info('Version: {0}, Last modified: {1}'.format(__version__, __last_modified__))
     logging.info('Args: {0}'.format(str(sys.argv)))
 
-    main(config.scan_location, config.report_location)
+
+def simple_parse_args(config: Config) -> None:
+    arg_count = len(sys.argv)
+    usage = r'Usage: python app\file-hash [a_report.csv] scan-location'
+    if 1 <= len(sys.argv) <= 2:
+        logging.info('{0} args in the correct range'.format(len(sys.argv)))
+        if arg_count == 2:
+            if sys.argv[2].strip() == '--report' or '-report' or '-r':
+                pass
+            else:
+                logging.critical(usage)
+                logging.critical('{0} arg incorrect, no report (-r)'.format(len(sys.argv)))
+                sys.exit(1)
+        if arg_count == 3:
+            logging.info('args 3: {0}, default report file used'.format(sys.argv[3]))
+            config.report_location = pathlib.Path(sys.argv[2].strip())
+
+        if arg_count == 4:
+            logging.info('args 4: {0}'.format(sys.argv[3]))
+            config.report_location = pathlib.Path(sys.argv[2].strip())
+            config.scan_location = pathlib.Path(sys.argv[3].strip())
+    else:
+        logging.critical(usage)
+        logging.critical('{0} args out of range'.format(len(sys.argv)))
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+
+    if message_box_on:
+        message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
+
+    config = Config
+    setup_logging(logging, config)
+    args = None
+
+    # args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
+    simple_parse_args(config)
+    print(config.scan_location)
+    print(config.report_location)
+    # main(config.scan_location, config.report_location)

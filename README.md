@@ -6,7 +6,7 @@
 - Skips big files that would take a long time to hash (see Config setting)
 - Creates log file of programme activities (v0.0.2)
 
-# Setup on windows
+# Setup on windows 
 
 ```commandline
 md file-hash
@@ -32,8 +32,12 @@ pytest ./test/file_hash.py
 
 # Further work
 
-- [ ] may need to pass string arguments to the main function
 - [ ] write each hash to the csv report after each is calculated
 - [x] set up logging rather that print (logging branch)
 - [ ] tkinter user interface (ui branch)
 - [ ] add tests to check the log messages
+
+# Further reading
+
+Found [RealPython argparse - sha1](https://realpython.com/python-command-line-arguments/#two-utilities-from-the-unix-world).
+Techniques in this tutorial may help with "write each hash to the csv report after each is calculated"
