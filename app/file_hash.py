@@ -12,7 +12,7 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.2'
-__last_modified__ = '24 Feb 2021'
+__last_modified__ = '25 Feb 2021'
 
 _csv_header = ['file-path', 'sha-1', 'error', 'size']
 
@@ -39,6 +39,8 @@ class Config:
 
     # Define the log format
     log_format = '[%(asctime)s] %(levelname)-8s %(name)-12s %(lineno)d %(funcName)s - %(message)s'
+
+    log_date_format = '%Y-%m-%d:%H:%M:%S'
 
 
 def parse_args(parser: argparse, config: Config):
@@ -81,9 +83,9 @@ def get_sha1_hash(file: pathlib):
                 hash.update(buffer)
         return hash.hexdigest()
     except FileNotFoundError as fnfe:
-        raise Exception(f'Warning: get_sha1_hash: FileNotFoundError {fnfe}: On file: {file}')
+        raise Exception('Warning: get_sha1_hash: FileNotFoundError {fnfe}: On file: {file}'.format(fnfe, file))
     except Exception as e:
-        raise Exception(f'Warning: get_sha1_hash: Exception: {e}: On file: {file}')
+        raise Exception('Warning: get_sha1_hash: Exception: {e}: On file: {file}'.format(e, file))
 
 
 def get_file_list(scan_location: pathlib):
@@ -96,24 +98,25 @@ def get_file_list(scan_location: pathlib):
     file_list = []
     if isinstance(scan_location, str):
         scan_location = pathlib.Path(scan_location)
+    # TODO: what to do if it is not a pathlib or string
 
     # just a single file
     if scan_location.is_file():
-        logging.info(f'Scan location is a file: {str(scan_location)}')
+        logging.info('Scan location is a file: {0}'.format(str(scan_location)))
         file_list.append(pathlib.Path(scan_location))
         return file_list
     else:
-        logging.info(f'Scan location is a folder: {pathlib.Path(scan_location)}')
+        logging.info('Scan location is a folder: {0}'.format(pathlib.Path(scan_location)))
 
     if pathlib.Path(scan_location).is_absolute():
-        logging.debug(f'Scan location to hash: {pathlib.Path(scan_location)}')
+        logging.debug('Scan location to hash: {0}'.format(pathlib.Path(scan_location)))
         scan_location = pathlib.Path(scan_location)
     else:
         scan_location = pathlib.Path(scan_location).resolve()
-        logging.debug(f'File (relative) location to hash: {scan_location}')
+        logging.debug('File (relative) location to hash: {scan_location}'.format(scan_location))
 
     if not pathlib.Path(scan_location).exists():
-        logging.critical(f'Location to hash is not found: {scan_location}')
+        logging.critical('Location to hash is not found: {scan_location}'.format(scan_location))
         exit(1)
 
     # item_list = scan_location.glob(filter)
@@ -134,9 +137,9 @@ def get_file_list(scan_location: pathlib):
                 file_list.append(item)
 
         except Exception as e:
-            logging.warning(f'get_file_list: {e}')
+            logging.warning('get file list: {e}'.format(e))
 
-    logging.debug(f'Size of file list to hash: {len(file_list)}')
+    logging.debug('Size of file list to hash: {0}'.format(len(file_list)))
     return file_list
 
 
@@ -147,22 +150,22 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
     :param file: output csv file
     :return:
     """
-    logging.debug(f'CSV report file: {file}')
+    logging.debug('CSV report file: {0}'.format(file))
     try:
         output_file = open(file, 'w+', encoding='utf-8')
     except Exception as e:
-        logging.error(f'print_dict_as_csv: Output file open failure: {e}')
+        logging.error('Output file open failure: {0}'.format(e))
         return 1
 
     csv_writer = csv.DictWriter(output_file, fieldnames=_csv_header, quoting=csv.QUOTE_ALL, lineterminator='\n')
     csv_writer.writeheader()
-    logging.debug(f'Number of file hashes to report: {len(data_list)}')
+    logging.debug('Number of file hashes to report: {0}'.format(len(data_list)))
     try:
         for data in data_list:
             csv_writer.writerow(data)
 
     except Exception as e:
-        logging.error(f'Error: file_hash: print_dict: {e} to file: {file}')
+        logging.error('csv dict write error: {0} to file: {1}'.format(e, file))
     finally:
         output_file.close()
 
@@ -187,30 +190,30 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
                 result_dict[_csv_header[1]] = get_sha1_hash(file)
             except Exception as e:
                 result_dict[_csv_header[2]] = e
-                logging.debug(f'Hash exception: {e}')
+                logging.debug('Hash exception: {0}'.format(e))
         else:
-            file_hash_error_count =  file_hash_error_count + 1
-            result_dict[_csv_header[2]] = f'big-file-skipped > {config.file_size_hash_skip} bytes'
+            file_hash_error_count = file_hash_error_count + 1
+            result_dict[_csv_header[2]] = 'big-file-skipped > {0} bytes'.format(config.file_size_hash_skip)
 
         result_dict[_csv_header[3]] = file_size
 
-        # print(f'd: {result_dict}')
+        # print('d: {result_dict}'.format(result_dict)
         result_list.append(result_dict)
-    logging.debug(f'Files not hashed (due to being too big): {file_hash_error_count}')
+    logging.debug('Files not hashed (due to being too big): {0}'.format(file_hash_error_count))
     save_dict_as_csv(result_list, report)
 
 
 if __name__ == "__main__":
 
     if message_box_on:
-        message_box.showinfo(f'File Hash', 'main - {sys.argv}')
+        message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
 
     config = Config
     args = None
     try:
         args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
     except Exception as e:
-        logging.critical(f'Parse arguments error: {e}')
+        logging.critical('Parse arguments error: {0}'.format(e))
 
     if args.scan_location is not None:
         config.scan_location = args.scan_location
@@ -228,7 +231,7 @@ if __name__ == "__main__":
         # Define logging level
         level=config.log_level,
         # Define the date format
-        datefmt='%Y-%m-%d:%H:%M:%S',
+        datefmt=config.log_date_format,
         # Declare the object we created to format the log messages
         format=config.log_format,
         # Declare handlers
@@ -241,7 +244,7 @@ if __name__ == "__main__":
     # Define your own logger name
     logging = logging.getLogger('file-hash')
 
-    logging.info(f'Version: {__version__}, Last modified: {__last_modified__}')
-    logging.info(f'Args: {str(sys.argv)}')
+    logging.info('Version: {0}, Last modified: {1}'.format(__version__, __last_modified__))
+    logging.info('Args: {0}'.format(str(sys.argv)))
 
     main(config.scan_location, config.report_location)
