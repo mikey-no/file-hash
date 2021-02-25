@@ -14,8 +14,6 @@ __author__ = 'MY'
 __version__ = '0.0.2'
 __last_modified__ = '24 Feb 2021'
 
-# adding logging - branch : logging
-
 _csv_header = ['file-path', 'sha-1', 'error', 'size']
 
 message_box_on = False
@@ -243,6 +241,7 @@ if __name__ == "__main__":
     # Define your own logger name
     logging = logging.getLogger('file-hash')
 
+    logging.info(f'Version: {__version__}, Last modified: {__last_modified__}')
     logging.info(f'Args: {str(sys.argv)}')
 
     main(config.scan_location, config.report_location)
