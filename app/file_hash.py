@@ -217,6 +217,9 @@ if __name__ == "__main__":
 
     if args.scan_location is not None:
         config.scan_location = args.scan_location
+    else:
+        logging.critical('No scan location provided')
+        sys.exit(1)
 
     if args.report is not None:
         config.report_location = args.report
