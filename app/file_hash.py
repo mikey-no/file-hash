@@ -113,10 +113,10 @@ def get_file_list(scan_location: pathlib):
         scan_location = pathlib.Path(scan_location)
     else:
         scan_location = pathlib.Path(scan_location).resolve()
-        logging.debug('File (relative) location to hash: {scan_location}'.format(scan_location))
+        logging.debug('File (relative) location to hash: {0}'.format(scan_location))
 
     if not pathlib.Path(scan_location).exists():
-        logging.critical('Location to hash is not found: {scan_location}'.format(scan_location))
+        logging.critical('Location to hash is not found: {0}'.format(scan_location))
         exit(1)
 
     # item_list = scan_location.glob(filter)
