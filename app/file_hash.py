@@ -10,6 +10,8 @@ from functools import partial
 from tkinter import messagebox as message_box
 from typing import List
 
+"""tag: v0.0.3"""
+
 __author__ = 'MY'
 __version__ = '0.0.3'
 __last_modified__ = '26 Feb 2021 13:04'
