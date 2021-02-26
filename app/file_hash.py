@@ -18,7 +18,7 @@ _csv_header = ['file-path', 'sha-1', 'error', 'size']
 
 message_box_on = False
 simple_args = True
-
+use_config_one = False
 
 class Config:
     # default
@@ -31,8 +31,9 @@ class Config:
     # show all messages below in order of seriousness
     log_level = logging.DEBUG  # shows all
     # log_level = logging.INFO  # shows info and below
-    # log_level = logging.ERROR
     # log_level = logging.WARNING
+    # log_level = logging.ERROR
+    # log_level = logging.CRITICAL
 
     # Log file location
     # logfile = r'.\Exports.ILB\hash-file.log'
@@ -44,6 +45,13 @@ class Config:
     log_date_format = '%Y-%m-%d:%H:%M:%S'
 
 
+class ConfigOne(Config):
+    """ Alternate Configuration """
+    scan_location = r'.\test files'
+    report = r'hash-report.csv'
+    logfile = r'.\Exports.ILB\hash-file.log'
+
+
 def parse_args(parser: argparse, config: Config):
     """Parse the programme arguments
     :param config:
@@ -53,7 +61,9 @@ def parse_args(parser: argparse, config: Config):
     location_help = r"""location specifying the start point to scan to recursively hash files.
                         May also be a single file. 
                         """
-    report_location_help = r"""location specifying the csv report file in which to write results. """
+    report_location_help = r"""location specifying the csv report file in which to write results.
+                                If not specified then the default is used: {0} 
+                                """.format(config.report)
 
     parser.add_argument('scan_location',
                         help=location_help)
@@ -83,8 +93,48 @@ def parse_args(parser: argparse, config: Config):
     return args
 
 
+def simple_parse_args(config: Config) -> None:
+    """ Alternate simpler programme argument parser """
+    arg_count = len(sys.argv)
+    #                            0             1             2
+    #                            1             2             3
+    usage = r'Usage: python app\file-hash [a_report.csv] scan-location'
+    if 2 <= len(sys.argv) <= 3:
+        logging.info('{0} args in the correct range'.format(len(sys.argv)))
+        if arg_count == 2:
+            # logging.info('args 2: {0}, default report file used'.format(sys.argv[1]))
+            config.scan_location = pathlib.Path(sys.argv[1].strip())
+        if arg_count == 3:
+            # logging.info('args 3: {0}'.format(sys.argv[2]))
+            config.report = pathlib.Path(sys.argv[1].strip())
+            config.scan_location = pathlib.Path(sys.argv[2].strip())
+    else:
+        logging.critical(usage)
+        logging.critical('{0} args out of range'.format(len(sys.argv)))
+        sys.exit(1)
+
+
+def check_path_instance(obj: object, name: str) -> pathlib.Path:
+    """ Check path instance type then convert and return
+    :param obj: object to check and convert
+    :param name: name of the object to check (apparently there is no sane way to get the name of the variable)
+    :return: pathlib.Path of the object else exit the programme with critical error
+    """
+
+    if isinstance(obj, (pathlib.WindowsPath, pathlib.PosixPath)):
+        return pathlib.Path(obj)
+    else:
+        if isinstance(obj, str):
+            return pathlib.Path(str(obj))  # TODO: force to utf-8 maybe
+        else:
+            logging.critical(
+                '{0} type is: {1}, not pathlib.WindowsPath or pathlib.PosixPath or str'.format(name, type(obj))
+            )
+            sys.exit(1)
+
+
 def get_file_size(file: pathlib):
-    return os.path.getsize(file)
+    return os.path.getsize(str(file))
 
 
 def get_sha1_hash(file: pathlib):
@@ -104,17 +154,15 @@ def get_sha1_hash(file: pathlib):
         raise Exception('Warning: get_sha1_hash: Exception: {0}: On file: {1}'.format(e, file))
 
 
-def get_file_list(scan_location: pathlib):
+def get_file_list(scan_location: pathlib) -> List[pathlib.Path]:
     """
     Populates the lists of objects (file(s) etc to be catalogued)
     file path -scan_location- to be catalogued (relative or absolute)
-    creates a list of all file and file like items
+    creates a list of all file items
     returns list of pathlib items
     """
     file_list = []
-    if isinstance(scan_location, str):
-        scan_location = pathlib.Path(scan_location)
-    # TODO: what to do if it is not a pathlib or string
+    scan_location = check_path_instance(scan_location, scan_location)
 
     # just a single file
     if scan_location.is_file():
@@ -186,25 +234,6 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
         output_file.close()
 
 
-def check_path_instance(obj: object, name: str) -> pathlib.Path:
-    """ Check path instance type then convert and return
-    :param obj: object to check and convert
-    :param name: name of the object to check (apparently there is no sane way to get the name of the variable)
-    :return: pathlib.Path of the object else exit the programme with critical error
-    """
-
-    if isinstance(obj, (pathlib.WindowsPath, pathlib.PosixPath)):
-        return pathlib.Path(obj)
-    else:
-        if isinstance(obj, str):
-            return pathlib.Path(str(obj)) # TODO: force to utf-8 maybe
-        else:
-            logging.critical(
-                '{0} type is: {1}, not pathlib.WindowsPath or pathlib.PosixPath or str'.format(name, type(obj))
-            )
-            sys.exit(1)
-
-
 def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config.report, config=Config):
     """
     main way to run the programme if not run via local command line
@@ -272,32 +301,16 @@ def setup_logging(logging, config: Config) -> None:
     logging.info('Args: {0}'.format(str(sys.argv)))
 
 
-def simple_parse_args(config: Config) -> None:
-    arg_count = len(sys.argv)
-    #                            0             1             2
-    #                            1             2             3
-    usage = r'Usage: python app\file-hash [a_report.csv] scan-location'
-    if 2 <= len(sys.argv) <= 3:
-        logging.info('{0} args in the correct range'.format(len(sys.argv)))
-        if arg_count == 2:
-            logging.info('args 2: {0}, default report file used'.format(sys.argv[1]))
-            config.scan_location = pathlib.Path(sys.argv[1].strip())
-        if arg_count == 3:
-            logging.info('args 3: {0}'.format(sys.argv[2]))
-            config.report = pathlib.Path(sys.argv[1].strip())
-            config.scan_location = pathlib.Path(sys.argv[2].strip())
-    else:
-        logging.critical(usage)
-        logging.critical('{0} args out of range'.format(len(sys.argv)))
-        sys.exit(1)
-
-
 if __name__ == "__main__":
 
     if message_box_on:
         message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
 
-    config = Config
+    if use_config_one is True:
+        config = ConfigOne
+    else:
+        config = Config
+
     setup_logging(logging, config)
     args = None
 
