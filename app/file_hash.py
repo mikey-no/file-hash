@@ -12,13 +12,13 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.3'
-__last_modified__ = '26 Feb 2021 12:19'
+__last_modified__ = '26 Feb 2021 13:04'
 
 _report_header = ['file-path', 'sha-1', 'error', 'size']
 
-message_box_on = False
+message_box_on = True
 simple_args = True
-use_config_one = False
+use_config_one = True
 
 
 class Config:
@@ -52,6 +52,7 @@ class ConfigOne(Config):
     logfile = r'.\Exports.ILB\hash-file.log'
 
 # --------------------- re-usable system functions ----------------------
+
 
 def parse_args(parser: argparse, config: Config):
     """Parse the programme arguments
@@ -249,15 +250,14 @@ def get_file_list(scan_location: pathlib) -> List[pathlib.Path]:
 def save_dict_as_csv(data_list: List[dict], file: pathlib):
     """
     Save the **data_list** to a csv **file**
-    Defaults explicitly to utf-8 encoding (TODO:
-    handle when file names are not UTF-8)
+    Defaults explicitly to utf-8 encoding (TODO: handle when file names are not UTF-8)
     :param data_list: list of dict with data to write to a csv file
     :param file: output csv file
     :return:
     """
     logging.debug('CSV report file: {0}'.format(file))
     try:
-        output_file = open(file, 'w+', encoding='utf-8')
+        output_file = open(str(file), 'w+', encoding='utf-8')
     except Exception as e:
         logging.error('Output file open failure: {0}'.format(e))
         return 1
