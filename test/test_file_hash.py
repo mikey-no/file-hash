@@ -1,7 +1,7 @@
 import pathlib
 from typing import List
 
-from app.file_hash import get_sha1_hash, get_file_list, get_file_size, save_dict_as_csv, main, _csv_header
+from app.file_hash import get_sha1_hash, get_file_list, get_file_size, save_dict_as_csv, main, _report_header
 
 test_files_root = r'C:\Users\a\Documents\vss\python-experiments\test-files'
 
@@ -108,16 +108,16 @@ def test_print_dict_as_csv(tmpdir):
     # make a data_dict list to print
     data_list_in = [
         {
-            f'{_csv_header[0]}': str(file1),
-            f'{_csv_header[1]}': 'abcdefg',
-            f'{_csv_header[2]}': 'no error here',
-            f'{_csv_header[3]}': '9'
+            f'{_report_header[0]}': str(file1),
+            f'{_report_header[1]}': 'abcdefg',
+            f'{_report_header[2]}': 'no error here',
+            f'{_report_header[3]}': '9'
         },
         {
-            f'{_csv_header[0]}': str(file2),
-            f'{_csv_header[1]}': '1234567890',
-            f'{_csv_header[2]}': 'no error here or here',
-            f'{_csv_header[3]}': '10',
+            f'{_report_header[0]}': str(file2),
+            f'{_report_header[1]}': '1234567890',
+            f'{_report_header[2]}': 'no error here or here',
+            f'{_report_header[3]}': '10',
         }
     ]
 

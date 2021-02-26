@@ -14,16 +14,18 @@ __author__ = 'MY'
 __version__ = '0.0.3'
 __last_modified__ = '26 Feb 2021'
 
-_csv_header = ['file-path', 'sha-1', 'error', 'size']
+_report_header = ['file-path', 'sha-1', 'error', 'size']
 
 message_box_on = False
 simple_args = True
 use_config_one = False
 
+
 class Config:
     # default
     scan_location = r'.\test files'
     report = r'hash-report.csv'
+
     # really big files do not hash (1 GByte) it would be very slow
     file_size_hash_skip = (1024 ** 3)
     # file_size_hash_skip = (1024 ** 1) # small file for test
@@ -36,21 +38,20 @@ class Config:
     # log_level = logging.CRITICAL
 
     # Log file location
-    # logfile = r'.\Exports.ILB\hash-file.log'
     logfile = 'file-hash.log'
 
     # Define the log format
     log_format = '[%(asctime)s] %(levelname)-8s %(name)-12s %(lineno)d %(funcName)s - %(message)s'
-
     log_date_format = '%Y-%m-%d:%H:%M:%S'
 
 
 class ConfigOne(Config):
     """ Alternate Configuration """
-    scan_location = r'.\test files'
+    scan_location = r'.\Source Files.ILB\test-data-001'
     report = r'hash-report.csv'
     logfile = r'.\Exports.ILB\hash-file.log'
 
+# --------------------- re-usable system functions ----------------------
 
 def parse_args(parser: argparse, config: Config):
     """Parse the programme arguments
@@ -128,10 +129,48 @@ def check_path_instance(obj: object, name: str) -> pathlib.Path:
             return pathlib.Path(str(obj))  # TODO: force to utf-8 maybe
         else:
             logging.critical(
-                '{0} type is: {1}, not pathlib.WindowsPath or pathlib.PosixPath or str'.format(name, type(obj))
+                '{0} type is: {1}, not pathlib.WindowsPath, pathlib.PosixPath or str'.format(name, type(obj))
             )
             sys.exit(1)
 
+
+def setup_logging(logging, config: Config) -> None:
+    """
+    Setup the logging with all my settings
+    :param logging: from import logging
+    :param config: config class
+    :return: None
+    """
+    # to fix the logger not writing to file, see:
+    # https://stackoverflow.com/questions/15892946/python-logging-module-is-not-writing-anything-to-file
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # Define basic configuration
+    logging.basicConfig(
+        # Define logging level
+        level=config.log_level,
+        # Define the date format
+        datefmt=config.log_date_format,
+        # Declare the object we created to format the log messages
+        format=config.log_format,
+        # Declare handlers
+        handlers=[
+            logging.FileHandler(config.logfile),
+            logging.StreamHandler(sys.stdout),
+        ]
+    )
+
+    # Define your own logger name
+    logging = logging.getLogger('file-hash')
+
+    logging.info('Version: {0}, Last modified: {1}'.format(__version__, __last_modified__))
+    logging.info('Args: {0}'.format(str(sys.argv)))
+
+    logging.debug(str(sys.version_info))
+    logging.debug(sys.modules.keys())
+
+# --------------------- end of re-usable system functions ----------------------
 
 def get_file_size(file: pathlib):
     return os.path.getsize(str(file))
@@ -143,7 +182,7 @@ def get_sha1_hash(file: pathlib):
     """
 
     try:
-        with open(file, mode='rb') as f:
+        with open(str(file), mode='rb') as f:
             hash = hashlib.sha1()
             for buffer in iter(partial(f.read, 128), b''):
                 hash.update(buffer)
@@ -210,6 +249,8 @@ def get_file_list(scan_location: pathlib) -> List[pathlib.Path]:
 def save_dict_as_csv(data_list: List[dict], file: pathlib):
     """
     Save the **data_list** to a csv **file**
+    Defaults explicitly to utf-8 encoding (TODO:
+    handle when file names are not UTF-8)
     :param data_list: list of dict with data to write to a csv file
     :param file: output csv file
     :return:
@@ -221,7 +262,7 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
         logging.error('Output file open failure: {0}'.format(e))
         return 1
 
-    csv_writer = csv.DictWriter(output_file, fieldnames=_csv_header, quoting=csv.QUOTE_ALL, lineterminator='\n')
+    csv_writer = csv.DictWriter(output_file, fieldnames=_report_header, quoting=csv.QUOTE_ALL, lineterminator='\n')
     csv_writer.writeheader()
     logging.debug('Number of file hashes to report: {0}'.format(len(data_list)))
     try:
@@ -247,58 +288,24 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
     result_list = []
     file_hash_error_count = 0
     for file in file_list:
-        result_dict = {_csv_header[0]: str(file)}
+        result_dict = {_report_header[0]: str(file)}
         file_size = get_file_size(file)
         if file_size < config.file_size_hash_skip:
             try:
-                result_dict[_csv_header[1]] = get_sha1_hash(file)
+                result_dict[_report_header[1]] = get_sha1_hash(file)
             except Exception as e:
-                result_dict[_csv_header[2]] = e
+                result_dict[_report_header[2]] = e
                 logging.debug('Hash exception: {0}'.format(e))
         else:
             file_hash_error_count = file_hash_error_count + 1
-            result_dict[_csv_header[2]] = 'big-file-skipped > {0} bytes'.format(config.file_size_hash_skip)
+            result_dict[_report_header[2]] = 'big-file-skipped > {0} bytes'.format(config.file_size_hash_skip)
 
-        result_dict[_csv_header[3]] = file_size
+        result_dict[_report_header[3]] = file_size
 
         # print('d: {result_dict}'.format(result_dict)
         result_list.append(result_dict)
     logging.debug('Files not hashed (due to being too big): {0}'.format(file_hash_error_count))
     save_dict_as_csv(result_list, report)
-
-
-def setup_logging(logging, config: Config) -> None:
-    """
-    Setup the logging with all my settings
-    :param logging: from import logging
-    :param config: config class
-    :return: None
-    """
-    # to fix the logger not writing to file, see:
-    # https://stackoverflow.com/questions/15892946/python-logging-module-is-not-writing-anything-to-file
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
-
-    # Define basic configuration
-    logging.basicConfig(
-        # Define logging level
-        level=config.log_level,
-        # Define the date format
-        datefmt=config.log_date_format,
-        # Declare the object we created to format the log messages
-        format=config.log_format,
-        # Declare handlers
-        handlers=[
-            logging.FileHandler(config.logfile),
-            logging.StreamHandler(sys.stdout),
-        ]
-    )
-
-    # Define your own logger name
-    logging = logging.getLogger('file-hash')
-
-    logging.info('Version: {0}, Last modified: {1}'.format(__version__, __last_modified__))
-    logging.info('Args: {0}'.format(str(sys.argv)))
 
 
 if __name__ == "__main__":
