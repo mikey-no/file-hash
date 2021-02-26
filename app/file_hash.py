@@ -12,11 +12,12 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.3'
-__last_modified__ = '25 Feb 2021'
+__last_modified__ = '26 Feb 2021'
 
 _csv_header = ['file-path', 'sha-1', 'error', 'size']
 
 message_box_on = False
+simple_args = True
 
 
 class Config:
@@ -254,24 +255,18 @@ def setup_logging(logging, config: Config) -> None:
 
 def simple_parse_args(config: Config) -> None:
     arg_count = len(sys.argv)
+    #                            0             1             2
+    #                            1             2             3
     usage = r'Usage: python app\file-hash [a_report.csv] scan-location'
-    if 1 <= len(sys.argv) <= 2:
+    if 2 <= len(sys.argv) <= 3:
         logging.info('{0} args in the correct range'.format(len(sys.argv)))
         if arg_count == 2:
-            if sys.argv[2].strip() == '--report' or '-report' or '-r':
-                pass
-            else:
-                logging.critical(usage)
-                logging.critical('{0} arg incorrect, no report (-r)'.format(len(sys.argv)))
-                sys.exit(1)
+            logging.info('args 2: {0}, default report file used'.format(sys.argv[1]))
+            config.scan_location = pathlib.Path(sys.argv[1].strip())
         if arg_count == 3:
-            logging.info('args 3: {0}, default report file used'.format(sys.argv[3]))
-            config.report_location = pathlib.Path(sys.argv[2].strip())
-
-        if arg_count == 4:
-            logging.info('args 4: {0}'.format(sys.argv[3]))
-            config.report_location = pathlib.Path(sys.argv[2].strip())
-            config.scan_location = pathlib.Path(sys.argv[3].strip())
+            logging.info('args 3: {0}'.format(sys.argv[2]))
+            config.report = pathlib.Path(sys.argv[1].strip())
+            config.scan_location = pathlib.Path(sys.argv[2].strip())
     else:
         logging.critical(usage)
         logging.critical('{0} args out of range'.format(len(sys.argv)))
@@ -287,8 +282,14 @@ if __name__ == "__main__":
     setup_logging(logging, config)
     args = None
 
-    # args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
-    simple_parse_args(config)
-    print(config.scan_location)
-    print(config.report_location)
-    # main(config.scan_location, config.report_location)
+    if simple_args:
+        simple_parse_args(config)
+    else:
+        args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
+
+    if message_box_on:
+        message_box.showinfo('File Hash', 'scan: {0} \nreport:  {1}'.format(config.scan_location, config.report))
+
+    logging.info('scan:   {0}'.format(config.scan_location))
+    logging.info('report: {0}'.format(config.report))
+    main(config.scan_location, config.report_location)
