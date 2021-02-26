@@ -186,6 +186,25 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
         output_file.close()
 
 
+def check_path_instance(obj: object, name: str) -> pathlib.Path:
+    """ Check path instance type then convert and return
+    :param obj: object to check and convert
+    :param name: name of the object to check (apparently there is no sane way to get the name of the variable)
+    :return: pathlib.Path of the object else exit the programme with critical error
+    """
+
+    if isinstance(obj, (pathlib.WindowsPath, pathlib.PosixPath)):
+        return pathlib.Path(obj)
+    else:
+        if isinstance(obj, str):
+            return pathlib.Path(str(obj)) # TODO: force to utf-8 maybe
+        else:
+            logging.critical(
+                '{0} type is: {1}, not pathlib.WindowsPath or pathlib.PosixPath or str'.format(name, type(obj))
+            )
+            sys.exit(1)
+
+
 def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config.report, config=Config):
     """
     main way to run the programme if not run via local command line
@@ -292,4 +311,6 @@ if __name__ == "__main__":
 
     logging.info('scan:   {0}'.format(config.scan_location))
     logging.info('report: {0}'.format(config.report))
-    main(config.scan_location, config.report_location)
+    config.scan_location = check_path_instance(config.scan_location, 'config.scan_location')
+    config.report = check_path_instance(config.report, 'config.report')
+    main(config.scan_location, config.report)
