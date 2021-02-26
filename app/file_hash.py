@@ -12,7 +12,7 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.3'
-__last_modified__ = '26 Feb 2021 12:14'
+__last_modified__ = '26 Feb 2021 12:17'
 
 _report_header = ['file-path', 'sha-1', 'error', 'size']
 
