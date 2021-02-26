@@ -336,3 +336,4 @@ if __name__ == "__main__":
     config.scan_location = check_path_instance(config.scan_location, 'config.scan_location')
     config.report = check_path_instance(config.report, 'config.report')
     main(config.scan_location, config.report)
+    sys.exit(0)
