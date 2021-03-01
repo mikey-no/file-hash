@@ -1,0 +1,37 @@
+@pytest.mark.skip
+def test_main_with_no_ext(tmpdir):
+    """ testing main with no external dependencies
+    not ready yet
+    """
+    config = Config
+    config.file_size_hash_skip = 1024
+    report = tmpdir.mkdir("sub").join("test-report.csv")
+    test1 = tmpdir.mkdir("test").join('꧇꧑꧑꧇ .txt')
+    tmp = pathlib.Path(tmpdir).joinpath('test')
+#    test2 = tmp.('永 - Wiktionary.URL')
+    test3 = tmp.join('kanji-教育漢字')
+    test4 = tmp.join('ᛗᚩᛞ᛫ᚩᚾᛞ᛫ᚩᚠᛖᚱᚻᛦ.txt')
+    test5 = tmp.join('python.txt')
+    test5 = tmp.join('empty.txt')
+    report = pathlib.Path(report)
+    assert len(tmp.listdir()) == 1
+    get_file_list(r'tmpdir\test')
+    main(pathlib.Path(r'tmpdir\test'), pathlib.Path(report), config)
+    result_file = ''
+    try:
+       result_report_file = open(report, 'r', encoding='utf-8')
+       result_file = result_report_file.read()
+    except Exception as e:
+       print(f'Error: test_file_sha1_hash: test file open failure: {e}')
+       return 1
+    finally:
+       result_report_file.close()
+    assert len(result_file) > 100
+    assert result_file == r""""file-path","sha-1","error","size","created","modified","file-name","file-extension"
+"?\test-files\kanji-教育漢字","","big-file-skipped > 1024 bytes","21864"
+"?\test-files\new 1.txt","","big-file-skipped > 1024 bytes","735085"
+"?\test-files\New Microsoft Word Document.docx","da39a3ee5e6b4b0d3255bfef95601890afd80709","","0"
+"?\test-files\New Text Document (2).txt","","big-file-skipped > 1024 bytes","147016"
+"?\test-files\New Text Document.txt","da39a3ee5e6b4b0d3255bfef95601890afd80709","","0"
+"?\test-files\UTF-16 encoding files-utf16","5403728097d5bbd5a0c37d4ac88512b3e7a01c8a","","152"
+"""

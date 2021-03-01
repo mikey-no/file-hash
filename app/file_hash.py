@@ -6,27 +6,35 @@ import os
 import pathlib
 import sys
 
+from datetime import datetime
 from functools import partial
 from tkinter import messagebox as message_box
 from typing import List
 
-"""tag: v0.0.3"""
+"""tag: v0.0.4"""
 
 __author__ = 'MY'
-__version__ = '0.0.3'
-__last_modified__ = '26 Feb 2021 13:04'
+__version__ = '0.0.4'
+__last_modified__ = '01 Mar 2021'
 
-_report_header = ['file-path', 'sha-1', 'error', 'size']
+_report_header = [
+    'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size',
+    'created', 'created-time', 'modified', 'modified-time', 'file-name', 'file-extension'
+]
 
-message_box_on = True
-simple_args = True
-use_config_one = True
+# case-label
+# sha-1-uc - for upper case
+# error message when zero bytes
+
+use_config_one = False
 
 
 class Config:
     # default
     scan_location = r'.\test files'
     report = r'hash-report.csv'
+    case_label = r'case-001'
+    message_box_on = True
 
     # really big files do not hash (1 GByte) it would be very slow
     file_size_hash_skip = (1024 ** 3)
@@ -53,65 +61,24 @@ class ConfigOne(Config):
     report = r'hash-report.csv'
     logfile = r'.\Exports.ILB\hash-file.log'
 
+
 # --------------------- re-usable system functions ----------------------
 
 
-def parse_args(parser: argparse, config: Config):
-    """Parse the programme arguments
-    :param config:
-    :param parser:
-    :return: arguments
-    """
-    location_help = r"""location specifying the start point to scan to recursively hash files.
-                        May also be a single file. 
-                        """
-    report_location_help = r"""location specifying the csv report file in which to write results.
-                                If not specified then the default is used: {0} 
-                                """.format(config.report)
-
-    parser.add_argument('scan_location',
-                        help=location_help)
-
-    parser.add_argument('-report', '--report',
-                        default=config.report,
-                        required=False,
-                        help=report_location_help)
-
-    parser.add_argument("-v", "--version",
-                        action="version",
-                        version=str(__version__)
-                        )
-
-    args = parser.parse_args()
-    logging.debug(str(args))
-
-    if args.scan_location is not None:
-        config.scan_location = args.scan_location
-    else:
-        logging.critical('No scan location provided')
-        sys.exit(1)
-
-    if args.report is not None:
-        config.report_location = args.report
-
-    return args
-
-
 def simple_parse_args(config: Config) -> None:
-    """ Alternate simpler programme argument parser """
-    arg_count = len(sys.argv)
-    #                            0             1             2
-    #                            1             2             3
-    usage = r'Usage: python app\file-hash [a_report.csv] scan-location'
-    if 2 <= len(sys.argv) <= 3:
+    """ Alternate simpler programme argument parser
+    replace " for _ in the case label
+    replace ' ' for _ in the case label
+    """
+
+    #                            0             1             2          3
+    #                            1             2             3          4
+    usage = r'Usage: python app\file-hash.py a_report.csv scan-location case-label'
+    if len(sys.argv) == 4:
         logging.info('{0} args in the correct range'.format(len(sys.argv)))
-        if arg_count == 2:
-            # logging.info('args 2: {0}, default report file used'.format(sys.argv[1]))
-            config.scan_location = pathlib.Path(sys.argv[1].strip())
-        if arg_count == 3:
-            # logging.info('args 3: {0}'.format(sys.argv[2]))
-            config.report = pathlib.Path(sys.argv[1].strip())
-            config.scan_location = pathlib.Path(sys.argv[2].strip())
+        config.report = pathlib.Path(sys.argv[1].strip())
+        config.scan_location = pathlib.Path(sys.argv[2].strip())
+        config.case_label = str(sys.argv[3].strip().replace(r'"', '_').replace(' ', '_'))
     else:
         logging.critical(usage)
         logging.critical('{0} args out of range'.format(len(sys.argv)))
@@ -173,10 +140,36 @@ def setup_logging(logging, config: Config) -> None:
     logging.debug(str(sys.version_info))
     logging.debug(sys.modules.keys())
 
+
 # --------------------- end of re-usable system functions ----------------------
+
+def get_time(d: datetime) -> datetime:
+    """ get the time (including time zone) from a datetime """
+    return d.strftime("%H:%M:%S%z")
+
+
+def get_date(d: datetime) -> datetime:
+    return d.strftime("%Y-%b-%d")
+
 
 def get_file_size(file: pathlib):
     return os.path.getsize(str(file))
+
+
+def get_file_name(file: pathlib):
+    return file.name
+
+
+def get_file_extension(file: pathlib):
+    return file.suffix
+
+
+def get_file_created(file):
+    return datetime.fromtimestamp(file.stat().st_ctime)
+
+
+def get_file_modified(file):
+    return datetime.fromtimestamp(file.stat().st_mtime)
 
 
 def get_sha1_hash(file: pathlib):
@@ -290,21 +283,38 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
     result_list = []
     file_hash_error_count = 0
     for file in file_list:
-        result_dict = {_report_header[0]: str(file)}
+        result_dict = {_report_header[0]: config.case_label}
+        result_dict[_report_header[1]] = str(file)
         file_size = get_file_size(file)
         if file_size < config.file_size_hash_skip:
             try:
-                result_dict[_report_header[1]] = get_sha1_hash(file)
+                hash = get_sha1_hash(file)
+                result_dict[_report_header[2]] = hash
+                result_dict[_report_header[3]] = hash.upper()
             except Exception as e:
-                result_dict[_report_header[2]] = e
+                result_dict[_report_header[4]] = e
                 logging.debug('Hash exception: {0}'.format(e))
         else:
             file_hash_error_count = file_hash_error_count + 1
-            result_dict[_report_header[2]] = 'big-file-skipped > {0} bytes'.format(config.file_size_hash_skip)
+            result_dict[_report_header[4]] = 'big-file-skipped > {0} bytes'.format(config.file_size_hash_skip)
 
-        result_dict[_report_header[3]] = file_size
+        if file_size < 1:
+            result_dict[_report_header[4]] = 'zero-bytes-file'
 
-        # print('d: {result_dict}'.format(result_dict)
+        # 0               1           2       3           4           5
+        # 'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size', ..... then....
+        #                           6           7                   8               9           10          11
+        #                           'created', 'created-time', 'modified', 'modified-time', 'file-name', 'file-extension'
+        result_dict[_report_header[5]] = file_size
+        datetime_created = get_file_created(file)
+        result_dict[_report_header[6]] = get_date(datetime_created)
+        result_dict[_report_header[7]] = get_time(datetime_created)
+        datetime_modified = get_file_modified(file)
+        result_dict[_report_header[8]] = get_date(datetime_modified)
+        result_dict[_report_header[9]] = get_time(datetime_modified)
+        result_dict[_report_header[10]] = get_file_name(file)
+        result_dict[_report_header[11]] = get_file_extension(file)
+
         result_list.append(result_dict)
     logging.debug('Files not hashed (due to being too big): {0}'.format(file_hash_error_count))
     save_dict_as_csv(result_list, report)
@@ -312,27 +322,21 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
 
 if __name__ == "__main__":
 
-    if message_box_on:
-        message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
-
     if use_config_one is True:
         config = ConfigOne
     else:
         config = Config
 
+    if config.message_box_on:
+        message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
+
     setup_logging(logging, config)
-    args = None
 
-    if simple_args:
-        simple_parse_args(config)
-    else:
-        args = parse_args(argparse.ArgumentParser(description='File Hash.', prog='file-hash'), config)
-
-    if message_box_on:
-        message_box.showinfo('File Hash', 'scan: {0} \nreport:  {1}'.format(config.scan_location, config.report))
+    simple_parse_args(config)
 
     logging.info('scan:   {0}'.format(config.scan_location))
     logging.info('report: {0}'.format(config.report))
+    logging.info('case-label: {0}'.format(config.case_label))
     config.scan_location = check_path_instance(config.scan_location, 'config.scan_location')
     config.report = check_path_instance(config.report, 'config.report')
     main(config.scan_location, config.report)
