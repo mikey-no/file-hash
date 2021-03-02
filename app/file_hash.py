@@ -15,7 +15,7 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.4'
-__last_modified__ = '01 Mar 2021'
+__last_modified__ = '02 Mar 2021'
 
 _report_header = [
     'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size',
