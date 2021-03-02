@@ -15,16 +15,12 @@ from typing import List
 
 __author__ = 'MY'
 __version__ = '0.0.4'
-__last_modified__ = '02 Mar 2021'
+__last_modified__ = '03 Mar 2021'
 
 _report_header = [
     'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size',
     'created', 'created-time', 'modified', 'modified-time', 'file-name', 'file-extension'
 ]
-
-# case-label
-# sha-1-uc - for upper case
-# error message when zero bytes
 
 use_config_one = False
 

@@ -58,7 +58,7 @@ pytest ./test/file_hash.py
 - [ ] add tests to check the log messages
 - [ ] deal with none utf-8 file names and paths
 - [ ] write out to calling programme native database format
-- [ ] provide further file information ("created","modified","file-name","file-extension"
+- [x] provide further file information ("created","modified","file-name","file-extension"
 ), details to be confirmed
 - [ ] reduce the number of external dependencies in test, particularly in test_main
 
