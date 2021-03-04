@@ -10,6 +10,7 @@
 - Has simplified parse command line argument parser (check which is being used)
 - Only use minimal external python dependencies
 - (v0.0.3 on 28 Feb deployed and work in prod environment)
+- git repo settings changed to make the end of line settings more consistent
 
 ## File Hash v0.0.4
 
