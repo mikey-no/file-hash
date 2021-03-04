@@ -11,11 +11,12 @@ from functools import partial
 from tkinter import messagebox as message_box
 from typing import List
 
-"""tag: v0.0.4"""
+"""tag: v0.0.5"""
 
 __author__ = 'MY'
 __version__ = '0.0.5'
-__last_modified__ = '04 Mar 2021'
+__last_modified__ = '08 Mar 2021'
+__application__ = 'file-hash'
 
 _report_header = [
     'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size',
@@ -24,13 +25,16 @@ _report_header = [
 
 use_config_one = False
 
+# time the programme started
+programme_start = datetime.now()
+
 
 class Config:
     # default
     scan_location = r'.\test files'
     report = r'hash-report.csv'
     case_label = r'case-001'
-    message_box_on = True
+    message_box_on = False
 
     # really big files do not hash (1 GByte) it would be very slow
     file_size_hash_skip = (1024 ** 3)
@@ -56,33 +60,62 @@ class ConfigOne(Config):
     scan_location = r'.\Source Files.ILB\test-data-001'
     report = r'.\Exports.ILB\hash-report.csv'
     logfile = r'.\Exports.ILB\hash-file.log'
+    message_box_on = True
 
 
-# --------------------- re-usable system functions ----------------------
+def safe_case_label(label: str) -> str:
+    """ Make sure the case label is safe to use in a file name
+    replace " for _ in the case label
+    replace ' ' for _ in the case label
+    replace , for _ in the case label
+    :param label:
+    :return:
+    """
+    return label.strip().replace(r'"', '_').replace(' ', '_').replace(',', '_')
+
+
+def check_report_directory(dir: str) -> pathlib.Path:
+    """
+    Check the report directory is a valid pathlib is a directory or folder and it exists
+    If a file is passed then the files parent folder is returned
+    else raise an exception
+    """
+    dir = check_path_instance(dir, 'report_dir_argument')
+    if dir.is_dir():
+        return dir
+    else:
+        if dir.is_file():
+            return dir.parent
+        else:
+            if dir.parent.exists():
+                return dir.parent
+            else:
+                raise Exception('Report directory is not a directory (or a file): {0}'.format(dir))
 
 
 def simple_parse_args(config: Config) -> None:
-    """ Alternate simpler programme argument parser
-    replace " for _ in the case label
-    replace ' ' for _ in the case label
-    """
-
+    """ Alternate simpler programme argument parser """
     #                            0             1             2          3
     #                            1             2             3          4
-    usage = r'Usage: python app\file-hash.py a_report.csv scan-location case-label'
+    usage = r'Usage: python app\file-hash.py report-location scan-location case-label'
     if len(sys.argv) == 4:
-        logging.info('{0} args in the correct range'.format(len(sys.argv)))
-        config.report = pathlib.Path(sys.argv[1].strip())
-        config.scan_location = pathlib.Path(sys.argv[2].strip())
-        config.case_label = str(sys.argv[3].strip().replace(r'"', '_').replace(' ', '_'))
+        try:
+            logging.info('{0} args in the correct range'.format(len(sys.argv)))
+            config.report = check_report_directory(sys.argv[1].strip())
+            config.scan_location = pathlib.Path(sys.argv[2].strip())
+            config.case_label = safe_case_label(sys.argv[3])
+        except Exception as e:
+            logging.critical(usage)
+            logging.critical('Invalid argument: {0}'.format(e))
+            sys.exit(1)
     else:
         logging.critical(usage)
-        logging.critical('{0} args out of range'.format(len(sys.argv)))
+        logging.critical('{0} args - out of range'.format(len(sys.argv)))
         sys.exit(1)
 
 
 def check_path_instance(obj: object, name: str) -> pathlib.Path:
-    """ Check path instance type then convert and return
+    """ Check pathlib instance type then convert and return
     :param obj: object to check and convert
     :param name: name of the object to check (apparently there is no sane way to get the name of the variable)
     :return: pathlib.Path of the object else exit the programme with critical error
@@ -130,14 +163,14 @@ def setup_logging(logging, config: Config) -> None:
     # Define your own logger name
     logging = logging.getLogger('file-hash')
 
-    logging.info('Version: {0}, Last modified: {1}'.format(__version__, __last_modified__))
+    logging.info(
+        'Application: {0}, Version: {1}, Last modified: {2}'.format(__application__, __version__, __last_modified__)
+    )
     logging.info('Args: {0}'.format(str(sys.argv)))
 
-    logging.debug(str(sys.version_info))
-    logging.debug(sys.modules.keys())
+    # logging.debug(str(sys.version_info))
+    # logging.debug(sys.modules.keys())
 
-
-# --------------------- end of re-usable system functions ----------------------
 
 def get_time(d: datetime) -> datetime:
     """ get the time (including time zone) from a datetime """
@@ -148,27 +181,27 @@ def get_date(d: datetime) -> datetime:
     return d.strftime("%Y-%b-%d")
 
 
-def get_file_size(file: pathlib):
+def get_file_size(file: pathlib) -> int:
     return os.path.getsize(str(file))
 
 
-def get_file_name(file: pathlib):
+def get_file_name(file: pathlib) -> str:
     return file.name
 
 
-def get_file_extension(file: pathlib):
+def get_file_extension(file: pathlib) -> str:
     return file.suffix
 
 
-def get_file_created(file):
+def get_file_created(file) -> datetime:
     return datetime.fromtimestamp(file.stat().st_ctime)
 
 
-def get_file_modified(file):
+def get_file_modified(file) -> datetime:
     return datetime.fromtimestamp(file.stat().st_mtime)
 
 
-def get_sha1_hash(file: pathlib):
+def get_sha1_hash(file: pathlib) -> str:
     """
     From a pathlib file get the hash in chunks
     """
@@ -238,10 +271,12 @@ def get_file_list(scan_location: pathlib) -> List[pathlib.Path]:
     return file_list
 
 
-def save_dict_as_csv(data_list: List[dict], file: pathlib):
+def save_dict_as_csv(data_list: List[dict], file: pathlib) -> None:
     """
-    Save the **data_list** to a csv **file**
-    Defaults explicitly to utf-8 encoding (TODO: handle when file names are not UTF-8)
+    Save the data_list (of dict) to a csv file
+    Explicitly used utf-8 encoding (TODO: handle when file names are not UTF-8)
+    Lines terminated with \n
+    All fields quoted with "
     :param data_list: list of dict with data to write to a csv file
     :param file: output csv file
     :return:
@@ -261,17 +296,36 @@ def save_dict_as_csv(data_list: List[dict], file: pathlib):
             csv_writer.writerow(data)
 
     except Exception as e:
-        logging.error('csv dict write error: {0} to file: {1}'.format(e, file))
+        logging.error('csv dict error: {0} writing to file: {1}'.format(e, file))
     finally:
         output_file.close()
 
 
-def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config.report, config=Config):
+def get_report_file(report_folder: pathlib, case_label: str, report_extension: str = 'csv') -> pathlib.Path:
     """
-    main way to run the programme if not run via local command line
+    Determine the file name for the report.
+    The report parameter supplies the folder or directory to store the hash report in
+    :param report_folder: the folder to create the report in (a filename will be ignored)
+    :param case_label: the case label (with problem charters replaced with underscore)
+    :param report_extension: extension to place on the report file (default is csv,
+                                the charter . is removed from the string)
+    :return:
+    """
+    report_suffix = 'file-hash'
+    report_extension = report_extension.replace('.', '').replace(' ', '_').strip()
+
+    report = pathlib.Path(report_folder)/(safe_case_label(case_label) + '.' + report_suffix + '.' + report_extension)
+    report = pathlib.Path(report)
+    logging.debug('Report file: {0}'.format(report))
+    return report
+
+
+def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config.report, config=Config) -> None:
+    """
+    Main
     :param config: optional object with default settings
     :param scan_location: location to scan for file(s) - inc sub directories to sha-1 hash
-    :param report: csv report
+    :param report: csv report (with extension csv)
     :return:
     """
 
@@ -299,8 +353,8 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
 
         # 0               1           2       3           4           5
         # 'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size', ..... then....
-        #                           6           7                   8               9           10          11
-        #                           'created', 'created-time', 'modified', 'modified-time', 'file-name', 'file-extension'
+        #                        6           7                   8               9           10          11
+        #                        'created', 'created-time', 'modified', 'modified-time', 'file-name', 'file-extension'
         result_dict[_report_header[5]] = file_size
         datetime_created = get_file_created(file)
         result_dict[_report_header[6]] = get_date(datetime_created)
@@ -313,7 +367,8 @@ def main(scan_location: pathlib = Config.scan_location, report: pathlib = Config
 
         result_list.append(result_dict)
     logging.debug('Files not hashed (due to being too big): {0}'.format(file_hash_error_count))
-    save_dict_as_csv(result_list, report)
+
+    save_dict_as_csv(result_list, get_report_file(report, config.case_label, '.csv'))
 
 
 if __name__ == "__main__":
@@ -327,7 +382,7 @@ if __name__ == "__main__":
         message_box.showinfo('File Hash', 'main - {0}'.format(sys.argv))
 
     setup_logging(logging, config)
-
+    logging.info('Programme start: {0}'.format(programme_start))  # have to log this after the logging has been set up
     simple_parse_args(config)
 
     logging.info('scan:   {0}'.format(config.scan_location))
@@ -336,4 +391,5 @@ if __name__ == "__main__":
     config.scan_location = check_path_instance(config.scan_location, 'config.scan_location')
     config.report = check_path_instance(config.report, 'config.report')
     main(config.scan_location, config.report)
+    logging.info('Programme stop: {0}, run time: {1}'.format(datetime.now(), datetime.now() - programme_start))
     sys.exit(0)

@@ -5,6 +5,7 @@
 # believe this is caused by the crlf behaviour
 #
 # for changing the values, see: https://docs.github.com/en/github/using-git/configuring-git-to-handle-line-endings
+# and: https://stackoverflow.com/questions/1967370/git-replacing-lf-with-crlf
 #
 
 

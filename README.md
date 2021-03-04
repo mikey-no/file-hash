@@ -2,7 +2,7 @@
 
 - A simple sha-1 file hashing programme
 - Written in python
-- With a number of tests to confirm it works - makes use of Markus Kuhn's work
+- With a number of tests to confirm it works - makes use of Markus Kuhn's unicode test files work
   <http://www.cl.cam.ac.uk/~mgk25/> - 2015-08-28 - CC BY 4.0
 - Skips big files that would take a long time to hash (see Config setting)
 - Creates log file of programme activities (v0.0.2)
@@ -10,7 +10,13 @@
 - Has simplified parse command line argument parser (check which is being used)
 - Only use minimal external python dependencies
 - (v0.0.3 on 28 Feb deployed and work in prod environment)
-- git repo settings changed to make the end of line settings more consistent
+- git repo settings changed to make the end of line settings more consistent, and the hash of the source code work
+
+## File Hash v0.0.5
+
+- case label supplied as an argument to the programme, this is used as part of the report file name and on each 
+  output record 
+- programme start stop time recorded in the log (v0.0.4)
 
 ## File Hash v0.0.4
 
@@ -19,7 +25,6 @@
 - removed the full argparser, only using the simple parser
 - added the file name and extension as additional separate fields
 - added duplicate sha-1 hash field sha-1-uc to provide the same hash with uppercase hex values
-
 
 # Setup on windows 
 
@@ -36,13 +41,7 @@ pip install -r requirements.txt
 ## From the command line - windows
 
 ```commandline
-python app\file_hash.py [result.csv] <file path to sha-1>
-```
-
-## From windows with the full parse
-See:
-```commandline
-python app\file_hash.py --help
+python app\file_hash.py <result-dir> <file path to sha-1> <case-label>
 ```
 
 # Test
