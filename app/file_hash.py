@@ -14,8 +14,8 @@ from typing import List
 """tag: v0.0.4"""
 
 __author__ = 'MY'
-__version__ = '0.0.4'
-__last_modified__ = '03 Mar 2021'
+__version__ = '0.0.5'
+__last_modified__ = '04 Mar 2021'
 
 _report_header = [
     'case-label', 'file-path', 'sha-1', 'sha-1-uc', 'error', 'size',
@@ -54,7 +54,7 @@ class Config:
 class ConfigOne(Config):
     """ Alternate Configuration """
     scan_location = r'.\Source Files.ILB\test-data-001'
-    report = r'hash-report.csv'
+    report = r'.\Exports.ILB\hash-report.csv'
     logfile = r'.\Exports.ILB\hash-file.log'
 
 
