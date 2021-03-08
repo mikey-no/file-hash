@@ -229,29 +229,6 @@ def test_check_report_directory(tmpdir):
 
     assert r5 == pathlib.Path(test5)
 
-# def test_get_report_file_2():
-#     # report_folder: pathlib, case_label: str, report_extension: str = 'csv'
-#     file1_to_try = r'c:\tmp\test.csv'
-#     file2_to_try = r'cdddddddddddddd'
-#     file3_to_try = r'test.csv'
-#     file4_to_try = r'c:\\tmp\\test.csv'
-#     file4_to_try = r'f://tmp//test.csv'
-#
-#     case_label = 'viper1'
-#     extension = 'spider'
-#     dot = '.'
-#     report_suffix = 'file-hash'
-#     cwd = pathlib.Path().cwd()
-#
-#     file1_ideal = cwd + '/' + case_label + dot + 'test' + dot + report_suffix + dot + extension  # r'c:\tmp\test.csv'
-#     file2_ideal = r'cdddddddddddddd'
-#     file3_ideal = r'test.csv'
-#     file4_ideal = r'c:\\tmp\\test.csv'
-#     file4_ideal = r'f://tmp//test.csv'
-#
-#     file1_response = get_report_file(file1_to_try, case_label, extension)
-#     assert file1_ideal == file1_response
-
 
 def test_print_dict_as_csv(tmpdir):
     config = Config

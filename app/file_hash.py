@@ -58,7 +58,7 @@ class Config:
 class ConfigOne(Config):
     """ Alternate Configuration """
     scan_location = r'.\Source Files.ILB\test-data-001'
-    report = r'.\Exports.ILB\hash-report.csv'
+    report = r'.\Exports.ILB'
     logfile = r'.\Exports.ILB\hash-file.log'
     message_box_on = True
 
@@ -95,8 +95,8 @@ def check_report_directory(dir: str) -> pathlib.Path:
 
 def simple_parse_args(config: Config) -> None:
     """ Alternate simpler programme argument parser """
-    #                            0             1             2          3
-    #                            1             2             3          4
+    #                            0             1                2          3
+    #                            1             2                3          4
     usage = r'Usage: python app\file-hash.py report-location scan-location case-label'
     if len(sys.argv) == 4:
         try:
@@ -388,8 +388,6 @@ if __name__ == "__main__":
     logging.info('scan:   {0}'.format(config.scan_location))
     logging.info('report: {0}'.format(config.report))
     logging.info('case-label: {0}'.format(config.case_label))
-    config.scan_location = check_path_instance(config.scan_location, 'config.scan_location')
-    config.report = check_path_instance(config.report, 'config.report')
-    main(config.scan_location, config.report)
-    logging.info('Programme stop: {0}, run time: {1}'.format(datetime.now(), datetime.now() - programme_start))
+    main(config.scan_location, config.report, config=config)
+    logging.info('Programme stop: {0}, running time: {1}'.format(datetime.now(), datetime.now() - programme_start))
     sys.exit(0)
