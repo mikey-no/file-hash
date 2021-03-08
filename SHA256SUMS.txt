@@ -1,3 +1,3 @@
 SHA256 hash of .\app\file_hash.py:
-22cf9a6ce29dae5355713f303f8702a4982a5f0af594a460f7d2ef1cbfa0c111
+464871c57252225beebb2ee05be314e640805019eb7d4c6c54bdf1eb81f06608
 CertUtil: -hashfile command completed successfully.
